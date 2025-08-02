@@ -1,0 +1,11 @@
+{% extends 'layout.html' %}
+{% block title %}Register{% endblock %}
+{% block content %}
+  <h2 class="text-xl font-bold mb-4">Registration</h2>
+  <form method="POST" class="space-y-4">
+    <input type="text" name="userName" placeholder="Username" class="border p-2 w-full" required>
+    <input type="password" name="password" placeholder="Password" class="border p-2 w-full" required>
+    <button class="bg-blue-500 text-white px-4 py-2 rounded">Register</button>
+  </form>
+  <p class="mt-4">You already have an account? <a href="/login" class="text-blue-600 underline">Login</a></p>
+{% endblock %}
