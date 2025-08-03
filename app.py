@@ -1,6 +1,7 @@
 from flask import Flask,render_template,redirect,request,flash,url_for,session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash,check_password_hash
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -12,6 +13,14 @@ class User (db.Model):
     id=db.Column(db.Integer,primary_key = True)
     userName = db.Column(db.String(150),unique=True,nullable=False)
     password = db.Column(db.String(150),nullable=False)
+
+class Task(db.Model):
+    id = db.Column(db.Integer,primary_key=True)
+    name = db.Column(db.String(200),nullable=False)
+    description = db.Column(db.Text)
+    completed = db.Column(db.Boolean,default=False)
+    due_date = db.Column(db.Date)
+    user_id = db.Column(db.Integer,db.ForeignKey('user.id'))
 
 @app.route('/')
 def home():
@@ -42,11 +51,40 @@ def login():
         flash('Incorrect username or password')
     return render_template('login.html')
 
-@app.route('/dashboard')
+@app.route('/dashboard',methods = ['GET','POST'])
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return f"welcome, user ID: {session['user_id']}"
+    user_id = session['user_id']
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form.get('description','')
+        due_date = request.form.get('due_date')
+        due_date = datetime.strptime(due_date,'%Y-%m-%d') if due_date else None
+        new_task = Task(name=name,description=description,due_date=due_date,user_id=user_id)
+        db.session.add(new_task)
+        db.session.commit()
+        return redirect(url_for('dashboard'))
+    tasks = Task.query.filter_by(user_id=user_id).all()
+    return render_template('dashboard.html',tasks=tasks)
+
+@app.route('/complete/<int:task_id>',methods= ['POST'])
+def complete(task_id):
+    task = Task.query.get_or_404(task_id)
+    if task.user_id != session['user_id'] :
+        return "Unauthorized", 403
+    task.completed = not task.completed
+    db.session.commit()
+    return redirect('/dashboard')
+
+@app.route('/delete/<int:task_id>', methods=['POST'])
+def delete(task_id):
+    task = Task.query.get_or_404(task_id)
+    if task.user_id != session['user_id'] :
+        return "Unauthorized", 403
+    db.session.delete(task)
+    db.session.commit()
+    return redirect('/dashboard')
 
 @app.route('/logout')
 def logout():
