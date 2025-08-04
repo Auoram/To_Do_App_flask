@@ -20,6 +20,7 @@ class Task(db.Model):
     description = db.Column(db.Text)
     completed = db.Column(db.Boolean,default=False)
     due_date = db.Column(db.Date)
+    completed_at = db.Column(db.DateTime)
     user_id = db.Column(db.Integer,db.ForeignKey('user.id'))
 
 @app.route('/')
@@ -66,7 +67,16 @@ def dashboard():
         db.session.commit()
         return redirect(url_for('dashboard'))
     tasks = Task.query.filter_by(user_id=user_id).all()
-    return render_template('dashboard.html',tasks=tasks)
+    completed_tasks = Task.query.filter_by(user_id=user_id,completed=True).count()
+    incompleted_tasks = Task.query.filter_by(user_id=user_id,completed=False).count()
+    completed_dates = db.session.query(Task.completed_at).filter_by(user_id=user_id, completed=True).all()
+    day_counts = {}
+    for (date,) in completed_dates:
+        if date:
+            weekday = date.strftime('%A')
+            day_counts[weekday] = day_counts.get(weekday, 0) + 1
+    most_productive_day = max(day_counts, key=day_counts.get) if day_counts else None
+    return render_template('dashboard.html',tasks=tasks,completed_tasks=completed_tasks,incompleted_tasks=incompleted_tasks,most_productive_day=most_productive_day)
 
 @app.route('/complete/<int:task_id>',methods= ['POST'])
 def complete(task_id):
@@ -74,6 +84,10 @@ def complete(task_id):
     if task.user_id != session['user_id'] :
         return "Unauthorized", 403
     task.completed = not task.completed
+    if task.completed :
+        task.completed_at = datetime.utcnow()
+    else:
+        task.completed_at = None
     db.session.commit()
     return redirect('/dashboard')
 

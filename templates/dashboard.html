@@ -2,13 +2,26 @@
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 <h1 class="text-2xl font-bold mb-4">Your To-Do List</h1>
-
 <form method="POST" class="mb-6 space-y-2">
   <input name="name" placeholder="Task Name" required class="border px-2 py-1 w-full">
   <textarea name="description" placeholder="Description" class="border px-2 py-1 w-full"></textarea>
   <input type="date" name="due_date" class="border px-2 py-1">
   <button class="bg-blue-500 text-white px-4 py-2 rounded">Add Task</button>
 </form>
+<div>
+  <h3>Completion Status</h3>
+  <p>Completed Tasks: {{ completed_tasks }}</p>
+  <p>Incomplete Tasks: {{ incompleted_tasks }}</p>
+</div>
+
+<div>
+  <h3>Most Productive Day</h3>
+  {% if most_productive_day %}
+    <p>You complete the most tasks on <strong>{{ most_productive_day }}</strong>.</p>
+  {% else %}
+    <p>No completed tasks yet to calculate most productive day.</p>
+  {% endif %}
+</div>
 <ul>
     {% for task in tasks %}
     <li class="mb-2 p-2 border rounded flex justify-between items-start {{ 'bg-green-100' if task.completed else 'bg-white' }}">
