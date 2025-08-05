@@ -8,20 +8,72 @@
   <input type="date" name="due_date" class="border px-2 py-1">
   <button class="bg-blue-500 text-white px-4 py-2 rounded">Add Task</button>
 </form>
-<div>
-  <h3>Completion Status</h3>
-  <p>Completed Tasks: {{ completed_tasks }}</p>
-  <p>Incomplete Tasks: {{ incompleted_tasks }}</p>
+<div id="completedTasks" data-value="{{ completed_tasks }}"></div>
+<div id="incompletedTasks" data-value="{{ incompleted_tasks }}"></div>
+<div id="dayCounts" data-value='{{ day_counts | tojson }}'></div>
+<div id="mostProductiveDay" data-value="{{ most_productive_day }}" hidden></div>
+<div class="flex flex-col md:flex-row gap-4 mb-4">
+  <div class="md:w-1/2 p-4 bg-white rounded shadow">
+    <h3 class="text-lg font-medium mb-2">Completion Status</h3>
+    <canvas id="completionChart" style="width:100%; height:100px;"></canvas>
+  </div>
+  <div class="md:w-1/2 p-4 bg-white rounded shadow">
+    <h3 class="text-lg font-medium mb-2">Most Productive Day</h3>
+    <canvas id="productiveChart" style="width:100%; height:650px;"></canvas>
+  </div>
 </div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+  const completedTasks = parseInt(document.getElementById('completedTasks').dataset.value);
+  const incompletedTasks = parseInt(document.getElementById('incompletedTasks').dataset.value);
+  const dayData = JSON.parse(document.getElementById('dayCounts').dataset.value);
+  const mostProductiveDay = document.getElementById('mostProductiveDay').dataset.value;
 
-<div>
-  <h3>Most Productive Day</h3>
-  {% if most_productive_day %}
-    <p>You complete the most tasks on <strong>{{ most_productive_day }}</strong>.</p>
-  {% else %}
-    <p>No completed tasks yet to calculate most productive day.</p>
-  {% endif %}
-</div>
+  const ctx1 = document.getElementById('completionChart').getContext('2d');
+  new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+      labels: ['Completed', 'Incomplete'],
+      datasets: [{
+        label: 'Tasks',
+        data: [completedTasks, incompletedTasks],
+        backgroundColor: ['#4CAF50', '#F44336']
+      }]
+    }
+  });
+
+  const days = Object.keys(dayData);
+  const counts = Object.values(dayData);
+
+  const barColors = days.map(day => day === mostProductiveDay ? '#FFC107' : '#2196F3');
+
+  const ctx2 = document.getElementById('productiveChart').getContext('2d');
+  new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: days,
+      datasets: [{
+        label: 'Tasks Completed',
+        data: counts,
+        backgroundColor: barColors
+      }]
+    },
+    options: {
+      plugins: {
+        title: {
+          display: true,
+          text: `Most Productive Day: ${mostProductiveDay}`
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+});
+</script>
 <ul>
     {% for task in tasks %}
     <li class="mb-2 p-2 border rounded flex justify-between items-start {{ 'bg-green-100' if task.completed else 'bg-white' }}">

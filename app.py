@@ -1,7 +1,7 @@
 from flask import Flask,render_template,redirect,request,flash,url_for,session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash,check_password_hash
-from datetime import datetime
+from datetime import datetime,timezone
 
 app = Flask(__name__)
 
@@ -76,7 +76,7 @@ def dashboard():
             weekday = date.strftime('%A')
             day_counts[weekday] = day_counts.get(weekday, 0) + 1
     most_productive_day = max(day_counts, key=day_counts.get) if day_counts else None
-    return render_template('dashboard.html',tasks=tasks,completed_tasks=completed_tasks,incompleted_tasks=incompleted_tasks,most_productive_day=most_productive_day)
+    return render_template('dashboard.html',tasks=tasks,completed_tasks=completed_tasks,incompleted_tasks=incompleted_tasks,most_productive_day=most_productive_day,day_counts=day_counts)
 
 @app.route('/complete/<int:task_id>',methods= ['POST'])
 def complete(task_id):
