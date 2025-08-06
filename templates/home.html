@@ -1,6 +1,33 @@
 {% extends 'layout.html' %}
-{% block title %}Home{% endblock %}
+{% block title %}Welcome{% endblock %}
 {% block content %}
-    <h1 class="text-lg">Welcome to the To-Do List App</h1>
-    <a href="/login"><button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Go to Login</button></a>
+  <nav class="bg-gradient-to-r from-green-600 to-indigo-600 text-white shadow-lg">
+    <div class="px-6 mx-auto py-4 flex justify-between">
+      <a href="/" class="text-2xl font-bold tracking-wide hover:opacity-90 transition">To-Do Art</a>
+      <div class="space-x-6 text-lg">
+        <a href="/" class="hover:underline">Home</a>
+        <a href="/register" class="hover:underline">Register</a>
+        <a href="/login" class="hover:underline">Login</a>
+      </div>
+    </div>
+  </nav>
+  <div class="flex-grow container mx-auto h-260 px-6 py-48 mb-3 text-center">
+    <h1 class="text-4xl font-bold text-green-800 mb-6">
+      Welcome to <span class="text-blue-600">Your Smart To-Do List App</span>
+    </h1>
+    <p class="text-lg text-gray-600 mb-8">
+      Organize your tasks, boost your productivity, and stay on track.
+    </p>
+    <a href="/login">
+      <button class="bg-gradient-to-r from-green-600 to-indigo-600 text-white px-6 py-3 rounded-lg shadow hover:shadow-xl transition-all duration-300 hover:scale-105">
+        Go to login
+      </button>
+    </a>
+  </div>
+  <footer class="bg-green-700 text-gray-300 text-center py-6 text-sm">
+    <div class="space-y-2">
+      <p>&copy; {{ 2025 }} To-Do Art. All rights reserved.</p>
+      <p>Crafted with by MB.</p>
+    </div>
+  </footer>
 {% endblock %}

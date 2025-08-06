@@ -1,13 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}To do app{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <title>{% block title %}To-Do App{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    .bg-artistic {
+      background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+    }
+  </style>
 </head>
-<body>
-    <div class="container p-10">
-        {% block content %}To do app{% endblock %}
-    </div>
+<body class="bg-artistic text-gray-800 min-h-screen flex flex-col">
+  <div>
+    {% block content %}{% endblock %}
+  </div>
 </body>
+</html>
