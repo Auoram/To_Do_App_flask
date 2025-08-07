@@ -1,98 +1,120 @@
 {% extends 'layout.html' %}
 {% block title %}Dashboard{% endblock %}
+
 {% block content %}
-<h1 class="text-2xl font-bold mb-4">Your To-Do List</h1>
-<form method="POST" class="mb-6 space-y-2">
-  <input name="name" placeholder="Task Name" required class="border px-2 py-1 w-full">
-  <textarea name="description" placeholder="Description" class="border px-2 py-1 w-full"></textarea>
-  <input type="date" name="due_date" class="border px-2 py-1">
-  <button class="bg-blue-500 text-white px-4 py-2 rounded">Add Task</button>
-</form>
+<!-- Navbar -->
+<div class="flex justify-between items-center mb-8 p-6 bg-green-500">
+  <h1 class="text-4xl font-extrabold text-white">Welcome to Your Dashboard</h1>
+  <form action="/logout" method="POST">
+    <button class="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">Logout</button>
+  </form>
+</div>
+<div class="container px-6 mx-auto py-6">
+<!-- Task Creation -->
+<div class="bg-white p-6 rounded-lg shadow-md mb-8">
+  <h2 class="text-2xl font-semibold mb-4 text-gray-700">Add a New Task</h2>
+  <form method="POST" class="space-y-4">
+    <input name="name" placeholder="Task Name" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+    <textarea name="description" placeholder="Description" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+    <input type="date" name="due_date" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+    <button class="w-full bg-green-700 text-white font-semibold py-3 rounded-lg shadow hover:shadow-xl transition">Add Task</button>
+  </form>
+</div>
+
+<!-- Charts -->
 <div id="completedTasks" data-value="{{ completed_tasks }}"></div>
 <div id="incompletedTasks" data-value="{{ incompleted_tasks }}"></div>
 <div id="dayCounts" data-value='{{ day_counts | tojson }}'></div>
 <div id="mostProductiveDay" data-value="{{ most_productive_day }}" hidden></div>
-<div class="flex flex-col md:flex-row gap-4 mb-4">
-  <div class="md:w-1/2 p-4 bg-white rounded shadow">
-    <h3 class="text-lg font-medium mb-2">Completion Status</h3>
-    <canvas id="completionChart" style="width:100%; height:100px;"></canvas>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+  <div class="bg-white p-6 rounded-lg shadow-lg">
+    <h3 class="text-xl font-semibold mb-4 text-gray-700">Completion Status</h3>
+    <canvas id="completionChart" style="width:25%; height:250px;"></canvas>
   </div>
-  <div class="md:w-1/2 p-4 bg-white rounded shadow">
-    <h3 class="text-lg font-medium mb-2">Most Productive Day</h3>
+  <div class="bg-white p-6 rounded-lg shadow-lg">
+    <h3 class="text-xl font-semibold mb-4 text-gray-700">Most Productive Day</h3>
     <canvas id="productiveChart" style="width:100%; height:650px;"></canvas>
   </div>
 </div>
+
+<!-- Task List -->
+<h2 class="text-2xl font-bold text-black mb-4">Your Tasks</h2>
+<ul class="space-y-4">
+  {% for task in tasks %}
+  <li class="p-4 rounded-lg border shadow-sm flex justify-between items-start hover:shadow-md transition bg-white">
+    <div>
+      <h3 class="font-semibold text-lg text-gray-800">{{ task.name }}</h3>
+      {% if task.due_date %}
+      <p class="text-sm text-gray-500 mb-1">Due: {{ task.due_date.strftime('%Y-%m-%d') }}</p>
+      {% endif %}
+      <p class="text-gray-600">{{ task.description }}</p>
+    </div>
+    <div class="flex gap-2 ml-4 mt-1">
+      <form method="POST" action="/complete/{{ task.id }}">
+        <button class="text-green-600 hover:underline">Task Completed ?</button>
+      </form>
+      <form method="POST" action="/delete/{{ task.id }}">
+        <button class="text-red-600 hover:underline">Delete</button>
+      </form>
+    </div>
+  </li>
+  {% else %}
+  <li class="text-gray-500 italic">No tasks yet.</li>
+  {% endfor %}
+</ul>
+
+<!-- Charts Script -->
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-  const completedTasks = parseInt(document.getElementById('completedTasks').dataset.value);
-  const incompletedTasks = parseInt(document.getElementById('incompletedTasks').dataset.value);
-  const dayData = JSON.parse(document.getElementById('dayCounts').dataset.value);
-  const mostProductiveDay = document.getElementById('mostProductiveDay').dataset.value;
+    const completedTasks = parseInt(document.getElementById('completedTasks').dataset.value);
+    const incompletedTasks = parseInt(document.getElementById('incompletedTasks').dataset.value);
+    const dayData = JSON.parse(document.getElementById('dayCounts').dataset.value);
+    const mostProductiveDay = document.getElementById('mostProductiveDay').dataset.value;
 
-  const ctx1 = document.getElementById('completionChart').getContext('2d');
-  new Chart(ctx1, {
-    type: 'doughnut',
-    data: {
-      labels: ['Completed', 'Incomplete'],
-      datasets: [{
-        label: 'Tasks',
-        data: [completedTasks, incompletedTasks],
-        backgroundColor: ['#4CAF50', '#F44336']
-      }]
-    }
-  });
+    const ctx1 = document.getElementById('completionChart').getContext('2d');
+    new Chart(ctx1, {
+      type: 'doughnut',
+      data: {
+        labels: ['Completed', 'Incomplete'],
+        datasets: [{
+          label: 'Tasks',
+          data: [completedTasks, incompletedTasks],
+          backgroundColor: ['#4CAF50', '#F44336']
+        }]
+      }
+    });
 
-  const days = Object.keys(dayData);
-  const counts = Object.values(dayData);
+    const days = Object.keys(dayData);
+    const counts = Object.values(dayData);
+    const barColors = days.map(day => day === mostProductiveDay ? '#FFC107' : '#2196F3');
 
-  const barColors = days.map(day => day === mostProductiveDay ? '#FFC107' : '#2196F3');
-
-  const ctx2 = document.getElementById('productiveChart').getContext('2d');
-  new Chart(ctx2, {
-    type: 'bar',
-    data: {
-      labels: days,
-      datasets: [{
-        label: 'Tasks Completed',
-        data: counts,
-        backgroundColor: barColors
-      }]
-    },
-    options: {
-      plugins: {
-        title: {
-          display: true,
-          text: `Most Productive Day: ${mostProductiveDay}`
-        }
+    const ctx2 = document.getElementById('productiveChart').getContext('2d');
+    new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: days,
+        datasets: [{
+          label: 'Tasks Completed',
+          data: counts,
+          backgroundColor: barColors
+        }]
       },
-      scales: {
-        y: {
-          beginAtZero: true
+      options: {
+        plugins: {
+          title: {
+            display: true,
+            text: `Most Productive Day: ${mostProductiveDay}`
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
         }
       }
-    }
+    });
   });
-});
 </script>
-<ul>
-    {% for task in tasks %}
-    <li class="mb-2 p-2 border rounded flex justify-between items-start {{ 'bg-green-100' if task.completed else 'bg-white' }}">
-        <div>
-            <strong>{{ task.name }}</strong>
-            {% if task.due_date %}<span class="text-sm text-gray-600"> - Should be done before {{ task.due_date.strftime('%Y-%m-%d') }}</span>{% endif %}
-            <p>{{ task.description }}</p>
-        </div>
-        <div class="flex gap-2 ml-4">
-            <form method="POST" action="/complete/{{ task.id }}">
-                <button class="text-green-500" type="submit">Completed ?</button>
-            </form>
-            <form method="POST" action="/delete/{{ task.id }}">
-                <button class="text-red-500" type="submit">Delete</button>
-            </form>
-        </div>
-    </li>
-    {% else %}
-    <li>No tasks yet.</li>
-    {% endfor %}
-</ul>
+</div>
 {% endblock %}
