@@ -100,7 +100,7 @@ def delete(task_id):
     db.session.commit()
     return redirect('/dashboard')
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 def logout():
     session.pop('user_id',None)
     return redirect(url_for('home'))

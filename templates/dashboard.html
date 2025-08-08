@@ -2,7 +2,6 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<!-- Navbar -->
 <div class="flex justify-between items-center mb-8 p-6 bg-green-500">
   <h1 class="text-4xl font-extrabold text-white">Welcome to Your Dashboard</h1>
   <form action="/logout" method="POST">
@@ -10,7 +9,6 @@
   </form>
 </div>
 <div class="container px-6 mx-auto py-6">
-<!-- Task Creation -->
 <div class="bg-white p-6 rounded-lg shadow-md mb-8">
   <h2 class="text-2xl font-semibold mb-4 text-gray-700">Add a New Task</h2>
   <form method="POST" class="space-y-4">
@@ -21,7 +19,6 @@
   </form>
 </div>
 
-<!-- Charts -->
 <div id="completedTasks" data-value="{{ completed_tasks }}"></div>
 <div id="incompletedTasks" data-value="{{ incompleted_tasks }}"></div>
 <div id="dayCounts" data-value='{{ day_counts | tojson }}'></div>
@@ -38,33 +35,39 @@
   </div>
 </div>
 
-<!-- Task List -->
 <h2 class="text-2xl font-bold text-black mb-4">Your Tasks</h2>
 <ul class="space-y-4">
   {% for task in tasks %}
-  <li class="p-4 rounded-lg border shadow-sm flex justify-between items-start hover:shadow-md transition bg-white">
-    <div>
-      <h3 class="font-semibold text-lg text-gray-800">{{ task.name }}</h3>
-      {% if task.due_date %}
-      <p class="text-sm text-gray-500 mb-1">Due: {{ task.due_date.strftime('%Y-%m-%d') }}</p>
-      {% endif %}
-      <p class="text-gray-600">{{ task.description }}</p>
+  {% if not task.completed %}
+    <div class="p-4 rounded-lg border shadow-sm flex justify-between items-start hover:shadow-md transition bg-white">
+      <div>
+        <h3 class="font-semibold text-lg text-gray-800">{{ task.name }}</h3>
+        {% if task.due_date %} <p class="text-sm text-gray-500 mb-1">Due: {{ task.due_date.strftime('%Y-%m-%d') }}</p> {% endif %}
+        <p class="text-gray-600">{{ task.description }}</p>
+      </div>
+      <div class="flex gap-4">
+        <form method="POST" action="{{ url_for('complete', task_id=task.id) }}">
+          <button class="text-green-600 hover:text-green-800" title="Mark as done">Task Completed ?</button>
+        </form>
+        <form method="POST" action="{{ url_for('delete', task_id=task.id) }}">
+          <button class="text-red-600 hover:text-red-800" title="Delete">Delete</button>
+        </form>
+      </div>
     </div>
-    <div class="flex gap-2 ml-4 mt-1">
-      <form method="POST" action="/complete/{{ task.id }}">
-        <button class="text-green-600 hover:underline">Task Completed ?</button>
-      </form>
-      <form method="POST" action="/delete/{{ task.id }}">
-        <button class="text-red-600 hover:underline">Delete</button>
-      </form>
-    </div>
-  </li>
-  {% else %}
-  <li class="text-gray-500 italic">No tasks yet.</li>
+  {% endif %}
   {% endfor %}
 </ul>
 
-<!-- Charts Script -->
+<h2 class="text-2xl font-bold text-black mb-4 mt-6">Completed Tasks</h2>
+<div class="grid gap-2">
+  {% for task in tasks if task.completed %}
+    <div class="p-4 border rounded bg-gray-100 text-gray-600">
+      <p class="font-semibold">{{ task.name }}</p>
+      <p class="text-sm">Completed at: {{ task.completed_at.strftime('%Y-%m-%d %H:%M') if task.completed_at else 'N/A' }}</p>
+    </div>
+  {% endfor %}
+</div>
+
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const completedTasks = parseInt(document.getElementById('completedTasks').dataset.value);
